@@ -1,0 +1,14 @@
+{{if .Success}}
+    <h1>Success</h1>
+{{else}}
+    <h1>Subject Info</h1>
+    <form method="POST">
+        <label>Gender:</label><br />
+        <input type="text" name="gender"><br />
+        <label>Age:</label><br />
+        <input type="text" name="age"><br />
+        <label>IOIHA:</label><br />
+        <input name="ioiha"></input><br />
+        <input type="submit">
+    </form>
+{{end}}

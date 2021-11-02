@@ -1,0 +1,1 @@
+This is a golang program that stores data for possible research in a MongoDB.

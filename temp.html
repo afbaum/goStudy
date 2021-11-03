@@ -1,6 +1,3 @@
-{{if .Success}}
-    <h1>Success</h1>
-{{else}}
     <h1>Subject Info</h1>
     <form method="POST">
         <label>Gender:</label><br />
@@ -9,6 +6,54 @@
         <input type="text" name="age"><br />
         <label>IOIHA:</label><br />
         <input name="ioiha"></input><br />
+        <select id="make" name="make">
+            <option value="Sonova">Phonak</option>
+            <option value="Resound">Resound</option>
+            <option value="Starkey">Starkey</option>
+            <option value="Sivantos">Sivantos</option>
+            <option value="Oticon">Oticon</option>
+        </select><br />
+        <h3>Right Ear Hearing Loss</h3>
+            <label>250: </label><br />
+            <input type="text" name="r250" maxlength="3" size="5"><br />
+            <label>500: </label><br />
+            <input type="text" name="r500" maxlength="3" size="5"><br />
+            <label>750: </label><br />
+            <input type="text" name="r750" maxlength="3" size="5"><br />
+            <label>1000: </label><br />
+            <input type="text" name="r1000" maxlength="3" size="5"><br />
+            <label>1500: </label><br />
+            <input type="text" name="r1500" maxlength="3" size="5"><br />
+            <label>2000: </label><br />
+            <input type="text" name="r2000" maxlength="3" size="5"><br />
+            <label>3000: </label><br />
+            <input type="text" name="r3000" maxlength="3" size="5"><br />
+            <label>4000: </label><br />
+            <input type="text" name="r4000" maxlength="3" size="5"><br />
+            <label>6000: </label><br />
+            <input type="text" name="r6000" maxlength="3" size="5"><br />
+            <label>8000: </label><br />
+            <input type="text" name="r8000" maxlength="3" size="5"><br />
+        <h3>Left Ear Hearing Loss</h3>
+            <label>250: </label><br />
+            <input type="text" name="l250" maxlength="3" size="5"><br />
+            <label>500: </label><br />
+            <input type="text" name="l500" maxlength="3" size="5"><br />
+            <label>750: </label><br />
+            <input type="text" name="l750" maxlength="3" size="5"><br />
+            <label>1000: </label><br />
+            <input type="text" name="l1000" maxlength="3" size="5"><br />
+            <label>1500: </label><br />
+            <input type="text" name="l1500" maxlength="3" size="5"><br />
+            <label>2000: </label><br />
+            <input type="text" name="l2000" maxlength="3" size="5"><br />
+            <label>3000: </label><br />
+            <input type="text" name="l3000" maxlength="3" size="5"><br />
+            <label>4000: </label><br />
+            <input type="text" name="l4000" maxlength="3" size="5"><br />
+            <label>6000: </label><br />
+            <input type="text" name="l6000" maxlength="3" size="5"><br />
+            <label>8000: </label><br />
+            <input type="text" name="l8000" maxlength="3" size="5"><br />
         <input type="submit">
     </form>
-{{end}}

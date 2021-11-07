@@ -11,3 +11,4 @@ Three items from the Features List
 1. This program reads data from a Mongo Database and uses that data by reporting it in the frontend.
 2. Data from the MongoDB is visualized in a graph
 3. Data is analyzed and information is displayed about the data 
+4. the golang log is implimented and used throughout the code to identify errors

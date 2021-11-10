@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -142,45 +142,42 @@ func dataEntry(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-func getAllAids(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("content-type", "application/json")
-	var hearingAids []HearingAid
-
-	// use function to connect to DB and insert data
-	client := MongoConnection()
-	collection := client.Database("study").Collection("subject")
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	cursor, err := collection.Find(ctx, bson.M{})
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`"message: "` + err.Error() + `"}`))
-		return
-	}
-	defer cursor.Close(ctx)
-	for cursor.Next(ctx) {
-		var hearingAid HearingAid
-		cursor.Decode(&hearingAid)
-		hearingAids = append(hearingAids, hearingAid)
-	}
-	if err := cursor.Err(); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`"message: "` + err.Error() + `"}`))
-		return
-	}
-	json.NewEncoder(w).Encode(hearingAids)
+func HearingAidPage(w http.ResponseWriter, r *http.Request) {
+	pipeline := pipeline("Resound")
+	tmpl := template.Must(template.ParseFiles("aids.html"))
+	tmpl.ExecuteTemplate(w, "aids.html", pipeline)
 }
 
 // handle the different request function for this study
 func handleRequests() {
 	http.HandleFunc("/", homePage)
 	http.HandleFunc("/form", dataEntry)
-	http.HandleFunc("/aids", getAllAids)
+	http.HandleFunc("/Resound", HearingAidPage)
 
 	http.ListenAndServe(":8080", nil)
 }
 
+func pipeline(aidMake string) []primitive.D {
+	client := MongoConnection()
+	ctx, _ := context.WithTimeout(context.Background(), 1*time.Second)
+	database := client.Database("study")
+	collection := database.Collection("subject")
+	// collection := client.Database("study").Collection("subject")
+
+	pipeline := bson.D{{"$match", bson.D{{"make", "Resound"}}}}
+
+	showInfoCursor, err := collection.Aggregate(ctx, mongo.Pipeline{pipeline})
+	if err != nil {
+		panic(err)
+	}
+	var showWithInfo []bson.D
+	if err = showInfoCursor.All(ctx, &showWithInfo); err != nil {
+		panic(err)
+	}
+	fmt.Println(showWithInfo[0])
+	return showWithInfo
+}
+
 func main() {
-
 	handleRequests()
-
 }

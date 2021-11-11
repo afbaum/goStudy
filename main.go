@@ -152,7 +152,7 @@ func HearingAidPage(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	http.HandleFunc("/", homePage)
 	http.HandleFunc("/form", dataEntry)
-	http.HandleFunc("/Resound", HearingAidPage)
+	http.HandleFunc("/infoPage", HearingAidPage)
 
 	http.ListenAndServe(":8080", nil)
 }
@@ -164,7 +164,7 @@ func pipeline(aidMake string) []primitive.D {
 	collection := database.Collection("subject")
 	// collection := client.Database("study").Collection("subject")
 
-	pipeline := bson.D{{"$match", bson.D{{"make", "Resound"}}}}
+	pipeline := bson.D{{"$unwind", "$hearingaid"}}
 
 	showInfoCursor, err := collection.Aggregate(ctx, mongo.Pipeline{pipeline})
 	if err != nil {
@@ -174,10 +174,18 @@ func pipeline(aidMake string) []primitive.D {
 	if err = showInfoCursor.All(ctx, &showWithInfo); err != nil {
 		panic(err)
 	}
-	fmt.Println(showWithInfo[0])
 	return showWithInfo
 }
 
 func main() {
-	handleRequests()
+	var answer string
+	for answer != "q" {
+		fmt.Println("To start the server you must first enter a name with more than five characters \n to quite type q")
+		fmt.Scanln(&answer)
+		if len(answer) > 5 {
+			handleRequests()
+		} else {
+			fmt.Println("you did not enter enough characters")
+		}
+	}
 }

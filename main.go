@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -19,34 +18,6 @@ type Subject struct {
 	Age    string `json:"age" bson:"age"`
 	Ioiha  string `json:"ioiha" bson:"ioiha"`
 	HearingAid
-	RightEar
-	LeftEar
-}
-
-type RightEar struct {
-	Right250  string `json:"r350" bson:"r350, omitempty"`
-	Right500  string `json:"r500" bson:"r500, omitempty"`
-	Right750  string `json:"r750" bson:"r750, omitempty"`
-	Right1000 string `json:"r1000" bson:"r1000, omitempty"`
-	Right1500 string `json:"r1500" bson:"r1500, omitempty"`
-	Right2000 string `json:"r2000" bson:"r2000, omitempty"`
-	Right3000 string `json:"r3000" bson:"r3000, omitempty"`
-	Right4000 string `json:"r4000" bson:"r4000, omitempty"`
-	Right6000 string `json:"r6000" bson:"r6000, omitempty"`
-	Right8000 string `json:"r8000" bson:"r8000, omitempty"`
-}
-
-type LeftEar struct {
-	Left250  string `json:"l350" bson:"l350, omitempty"`
-	Left500  string `json:"l500" bson:"l500, omitempty"`
-	Left750  string `json:"l750" bson:"l750, omitempty"`
-	Left1000 string `json:"l1000" bson:"l1000, omitempty"`
-	Left1500 string `json:"l1500" bson:"l1500, omitempty"`
-	Left2000 string `json:"l2000" bson:"l2000, omitempty"`
-	Left3000 string `json:"l3000" bson:"l3000, omitempty"`
-	Left4000 string `json:"l4000" bson:"l4000, omitempty"`
-	Left6000 string `json:"l6000" bson:"l6000, omitempty"`
-	Left8000 string `json:"l8000" bson:"l8000, omitempty"`
 }
 
 type HearingAid struct {
@@ -88,32 +59,6 @@ func dataEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rightDetails := RightEar{
-		Right250:  r.FormValue("r250"),
-		Right500:  r.FormValue("r500"),
-		Right750:  r.FormValue("r750"),
-		Right1000: r.FormValue("r1000"),
-		Right1500: r.FormValue("r1500"),
-		Right2000: r.FormValue("r2000"),
-		Right3000: r.FormValue("r3000"),
-		Right4000: r.FormValue("r4000"),
-		Right6000: r.FormValue("r6000"),
-		Right8000: r.FormValue("r8000"),
-	}
-
-	leftDetails := LeftEar{
-		Left250:  r.FormValue("l250"),
-		Left500:  r.FormValue("l500"),
-		Left750:  r.FormValue("l750"),
-		Left1000: r.FormValue("l1000"),
-		Left1500: r.FormValue("l1500"),
-		Left2000: r.FormValue("l2000"),
-		Left3000: r.FormValue("l3000"),
-		Left4000: r.FormValue("l4000"),
-		Left6000: r.FormValue("l6000"),
-		Left8000: r.FormValue("l8000"),
-	}
-
 	hearingAidInfo := HearingAid{
 		Make:  r.FormValue("make"),
 		Model: r.FormValue("model"),
@@ -124,8 +69,6 @@ func dataEntry(w http.ResponseWriter, r *http.Request) {
 		Age:        r.FormValue("age"),
 		Ioiha:      r.FormValue("ioiha"),
 		HearingAid: hearingAidInfo,
-		RightEar:   rightDetails,
-		LeftEar:    leftDetails,
 	}
 
 	// use function to connect to DB and insert data
@@ -142,8 +85,8 @@ func dataEntry(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-func HearingAidPage(w http.ResponseWriter, r *http.Request) {
-	pipeline := pipeline("Resound")
+func infoPage(w http.ResponseWriter, r *http.Request) {
+	pipeline := pipeline("gender")
 	tmpl := template.Must(template.ParseFiles("aids.html"))
 	tmpl.ExecuteTemplate(w, "aids.html", pipeline)
 }
@@ -152,40 +95,42 @@ func HearingAidPage(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	http.HandleFunc("/", homePage)
 	http.HandleFunc("/form", dataEntry)
-	http.HandleFunc("/infoPage", HearingAidPage)
+	http.HandleFunc("/infoPage", infoPage)
 
 	http.ListenAndServe(":8080", nil)
 }
 
-func pipeline(aidMake string) []primitive.D {
+type Data struct {
+	Ioiha string
+}
+
+// queries data from the mongodB database
+func pipeline(aidMake string) []string {
 	client := MongoConnection()
 	ctx, _ := context.WithTimeout(context.Background(), 1*time.Second)
 	database := client.Database("study")
 	collection := database.Collection("subject")
 	// collection := client.Database("study").Collection("subject")
 
-	pipeline := bson.D{{"$unwind", "$hearingaid"}}
-
-	showInfoCursor, err := collection.Aggregate(ctx, mongo.Pipeline{pipeline})
+	filterCursor, err := collection.Find(ctx, bson.M{"gender": "male"})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	var showWithInfo []bson.D
-	if err = showInfoCursor.All(ctx, &showWithInfo); err != nil {
-		panic(err)
+	var filteredData []bson.M
+	if err = filterCursor.All(ctx, &filteredData); err != nil {
+		log.Fatal(err)
 	}
-	return showWithInfo
+
+	s := make([]string, len(filteredData))
+
+	for i := 0; i < len(filteredData); i++ {
+		m := filteredData[i]["ioiha"].(string)
+		s[i] = m
+	}
+
+	return s
 }
 
 func main() {
-	var answer string
-	for answer != "q" {
-		fmt.Println("To start the server you must first enter a name with more than five characters \n to quite type q")
-		fmt.Scanln(&answer)
-		if len(answer) > 5 {
-			handleRequests()
-		} else {
-			fmt.Println("you did not enter enough characters")
-		}
-	}
+	handleRequests()
 }
